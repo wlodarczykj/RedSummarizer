@@ -1,6 +1,10 @@
 import sys
 
-STOP_WORDS = ['the', 'is', 'to', 'that', 'for', 'of', 'a', 'i', 'at', 'it', 'he', 'she', 'they', 'don\'t', 'do', 'this', 'have']
+#TODO move this
+STOP_WORDS = ['the', 'The', 'They', 'can', 'are', 'be', 'or', 'and', 'is',
+             'to', 'that', 'for', 'of', 'a', 'i', 'at', 'it', 'he',
+              'she', 'they', 'don\'t', 'do', 'this', 'have', 'in',
+              'has', 'an']
 
 class Summarizer:
     def __init__(self, filename):
@@ -11,13 +15,19 @@ class Summarizer:
     def score_sentence(cls, sentence, score_map):
         words = sentence.split(" ")
         word_count = len(words)
-        avg_score = 0
-        
+        avg_prob = 0
+        best_word = ("", 0)
+
         for word in words:
             if word in score_map:
-                avg_score += score_map[word]
+                avg_prob += score_map[word]
+
+                if score_map[word] > best_word[1]:
+                    best_word = (word, score_map[word])
         
-        return avg_score / word_count
+        avg_prob = avg_prob / word_count
+
+        return avg_prob * best_word[1]
 
     @classmethod
     def is_punctuation(cls, character):
@@ -27,13 +37,13 @@ class Summarizer:
     def summarize_one(cls, content):
         score_map = {}
 
-        words = content.replace("\n", " ").replace(".", " ").split(' ')
+        words = content.replace("\n", " ").replace(".", " ").replace("\"", "").split(' ')
         total_word_count = len(words)
 
         for word in words:
-            if word in score_map and word not in STOP_WORDS:
+            if word and word in score_map and word not in STOP_WORDS:
                 score_map[word] += 1
-            elif word not in STOP_WORDS:
+            elif word and word not in STOP_WORDS:
                 score_map[word] = 1
 
         for word in score_map:
@@ -70,5 +80,5 @@ class Summarizer:
 
 if len(sys.argv) > 1:
     ez_sum = Summarizer(sys.argv[1])
-    ez_sum.summarize(2)
+    ez_sum.summarize(3)
 
