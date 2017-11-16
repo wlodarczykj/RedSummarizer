@@ -1,6 +1,6 @@
 import sys
 
-STOP_WORDS = ['the', 'is', 'to', 'that', 'for', 'of', 'a', 'i', 'at', 'it', 'he', 'she']
+STOP_WORDS = ['the', 'is', 'to', 'that', 'for', 'of', 'a', 'i', 'at', 'it', 'he', 'she', 'they', 'don\'t', 'do', 'this', 'have']
 
 class Summarizer:
     def __init__(self, filename):
@@ -12,7 +12,7 @@ class Summarizer:
         words = sentence.split(" ")
         word_count = len(words)
         avg_score = 0
-
+        
         for word in words:
             if word in score_map:
                 avg_score += score_map[word]
@@ -23,10 +23,11 @@ class Summarizer:
     def is_punctuation(cls, character):
         return character == '.' or character == '?' or character == '!'
 
-
-    def summarize(self):
+    @classmethod
+    def summarize_one(cls, content):
         score_map = {}
-        words = self.content.replace("\n", " ").replace(".", " ").split(' ')
+
+        words = content.replace("\n", " ").replace(".", " ").split(' ')
         total_word_count = len(words)
 
         for word in words:
@@ -40,24 +41,34 @@ class Summarizer:
 
         sentence_map = {}
         sentence = ""
-        for char in self.content.replace("\n", ""):
-            if self.is_punctuation(char):
-                sentence_map[sentence] = self.score_sentence(sentence, score_map)
+        for char in content.replace("\n", ""):
+            sentence += char
+            if cls.is_punctuation(char):
+                sentence_map[sentence] = cls.score_sentence(sentence, score_map)
                 sentence = ""
-            else:
-                sentence += char
 
         best_sentence_score = 0
         best_sentence = ""
         for sen in sentence_map:
             if sentence_map[sen] > best_sentence_score:
+                best_sentence_score = sentence_map[sen]
                 best_sentence = sen
 
-        print(best_sentence)    
+        return best_sentence
 
+    def summarize(self, num_sentences):
+        summarize_content = self.content
+
+        total_sum = ""        
+        for x in range(0, num_sentences):
+            best = self.summarize_one(summarize_content)
+            total_sum += best
+            summarize_content = summarize_content.replace(best, "")
+
+        print(total_sum)
 
 
 if len(sys.argv) > 1:
     ez_sum = Summarizer(sys.argv[1])
-    ez_sum.summarize()
+    ez_sum.summarize(2)
 
